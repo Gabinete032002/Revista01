@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Cronista Digital - Edición Impresa Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-color: #f9f7f0;
+            --ink-color: #222;
+            --header-color: #111;
+            --accent-color: #8b0000;
+            --column-rule: 1px solid #ddd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PT Serif', serif;
+            background-color: #f0f0f0;
+            color: var(--ink-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .newspaper-container {
+            position: relative;
+            width: 90vw;
+            max-width: 1000px;
+            height: 90vh;
+            overflow: hidden;
+        }
+
+        .newspaper-page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            background: var(--paper-color);
+            overflow: hidden;
+            border: 1px solid #ccc;
+            transition: transform 0.5s ease, opacity 0.4s ease;
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .newspaper-page::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .page-content {
+            padding: 30px;
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Estilos del periódico (igual que antes) */
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--ink-color);
+            margin-bottom: 30px;
+            font-family: 'Libre Baskerville', serif;
+        }
+
+        .date {
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--header-color);
+            letter-spacing: -2px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            font-style: italic;
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            column-rule: var(--column-rule);
+            column-gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .main-article {
+            grid-column: span 2;
+            border-right: var(--column-rule);
+            padding-right: 30px;
+        }
+
+        .headline {
+            font-size: 2rem;
+            line-height: 1.2;
+            margin-bottom: 15px;
+            font-family: 'Libre Baskerville', serif;
+            color: var(--header-color);
+        }
+
+        .byline {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .article-img {
+            width: 100%;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background: white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .article-img figcaption {
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 5px;
+            color: #666;
+        }
+
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 4rem;
+            line-height: 0.8;
+            padding-right: 8px;
+            padding-top: 8px;
+            font-family: 'Libre Baskerville', serif;
+            color: var(--accent-color);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .sidebar-article {
+            border-bottom: var(--column-rule);
+            padding-bottom: 20px;
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 15px;
+            right: 30px;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'PT Serif', serif;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.9);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Efectos de transición */
+        .page-transition {
+            transition: transform 0.5s ease, opacity 0.4s ease;
+        }
+
+        .page-out {
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+
+        .page-in {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .columns {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-article {
+                grid-column: span 1;
+                border-right: none;
+                padding-right: 0;
+                border-bottom: var(--column-rule);
+                padding-bottom: 30px;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .headline {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .page-content {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="newspaper-container" id="newspaper">
+        <!-- Las páginas se generarán con JavaScript -->
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn">◄ Anterior</button>
+        <button class="nav-btn" id="nextBtn">Siguiente ►</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const newspaper = document.getElementById('newspaper');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // Datos del periódico (4 páginas de ejemplo)
+            const newspaperData = [
+                {
+                    type: 'front-page',
+                    date: 'Viernes, 28 de Junio de 2024',
+                    title: 'El Cronista Digital',
+                    subtitle: 'Edición Impresa Digital',
+                    mainArticle: {
+                        headline: 'El Gobierno anuncia un nuevo plan económico para reactivar el empleo',
+                        byline: 'Por Juan Pérez - Corresponsal económico',
+                        image: 'https://source.unsplash.com/random/800x500?meeting',
+                        imageCaption: 'El ministro de Economía durante el anuncio del nuevo plan',
+                        content: [
+                            'El Gobierno presentó ayer un ambicioso paquete de medidas económicas destinadas a reactivar el mercado laboral, especialmente afectado en los últimos trimestres. El plan, que será debatido en el Congreso la próxima semana, incluye incentivos fiscales para las empresas que contraten a desempleados de larga duración.',
+                            'Según explicó el ministro de Economía en rueda de prensa, "se trata de un conjunto de medidas transversales que pretenden atacar el problema desde múltiples frentes". Entre las novedades destacan las subvenciones a la formación profesional y los programas de recolocación en sectores emergentes.',
+                            'Los analistas consultados por este periódico muestran opiniones divididas. Mientras algunos consideran que las medidas llegan en el momento oportuno, otros critican que no abordan problemas estructurales como la precariedad laboral.'
+                        ]
+                    },
+                    sidebarArticles: [
+                        {
+                            title: 'Avances en la investigación del Alzheimer',
+                            content: 'Un equipo internacional de científicos ha identificado un nuevo biomarcador que podría permitir diagnósticos más tempranos de esta enfermedad neurodegenerativa. Los resultados se publicaron ayer en la revista Nature Medicine.'
+                        },
+                        {
+                            title: 'El Real Madrid ficha al joven talento brasileño',
+                            content: 'El club merengue ha hecho oficial el fichaje del mediocampista João Vinicius, de 19 años, procedente del Flamengo. El jugador firmará por cinco temporadas.'
+                        }
+                    ]
+                },
+                {
+                    type: 'page',
+                    mainArticle: {
+                        headline: 'La bolsa española alcanza máximos históricos',
+                        byline: 'Por Ana López - Corresponsal financiero',
+                        image: 'https://source.unsplash.com/random/800x500?stock,exchange',
+                        imageCaption: 'El parqué de la bolsa de Madrid durante la sesión de ayer',
+                        content: [
+                            'El IBEX 35 cerró ayer en máximos históricos, superando por primera vez la barrera de los 10.000 puntos, impulsado por los buenos resultados del sector bancario y las expectativas positivas sobre la economía española.',
+                            'Los analistas atribuyen este comportamiento alcista a varios factores, entre ellos la estabilidad política reciente y los buenos datos macroeconómicos publicados la semana pasada. Sin embargo, algunos expertos advierten de posibles correcciones a corto plazo.'
+                        ]
+                    },
+                    sidebarArticles: [
+                        {
+                            title: 'Exposición de arte renacentista en el Museo Nacional',
+                            content: 'Desde mañana y hasta el 15 de septiembre, el Museo Nacional albergará una muestra excepcional con obras de Rafael, Tiziano y El Greco procedentes de colecciones europeas.'
+                        },
+                        {
+                            title: 'Previsiones meteorológicas',
+                            content: 'La AEMET anuncia un fin de semana con temperaturas por encima de lo habitual para esta época del año, alcanzando los 34°C en el sur. Posibles tormentas aisladas el domingo por la tarde.'
+                        }
+                    ]
+                },
+                {
+                    type: 'page',
+                    mainArticle: {
+                        headline: 'Nuevo récord de participación en las pruebas de acceso a la universidad',
+                        byline: 'Por María González - Corresponsal de educación',
+                        image: 'https://source.unsplash.com/random/800x500?university,students',
+                        imageCaption: 'Estudiantes realizando los exámenes de selectividad',
+                        content: [
+                            'Un total de 215.000 estudiantes se han presentado este año a las pruebas de acceso a la universidad, lo que supone un récord histórico de participación. Las comunidades autónomas han reforzado los dispositivos para garantizar el normal desarrollo de los exámenes.',
+                            'El Ministerio de Educación ha destacado que este aumento refleja el interés de los jóvenes por continuar su formación, aunque algunos sindicatos docentes alertan sobre la saturación del sistema universitario.'
+                        ]
+                    },
+                    sidebarArticles: [
+                        {
+                            title: 'Concierto benéfico para la infancia',
+                            content: 'Artistas nacionales e internacionales participarán el próximo mes en un macroconcierto cuyos beneficios irán destinados a programas de nutrición infantil en países en desarrollo.'
+                        },
+                        {
+                            title: 'Nuevo récord de velocidad en fibra óptica',
+                            content: 'Un equipo de investigadores españoles ha batido el récord de velocidad de transmisión de datos por fibra óptica, alcanzando los 1.2 petabits por segundo.'
+                        }
+                    ]
+                },
+                {
+                    type: 'back-page',
+                    mainArticle: {
+                        headline: 'El deporte rey vuelve a reunir a la ciudad',
+                        byline: 'Por Carlos Ruiz - Corresponsal deportivo',
+                        image: 'https://source.unsplash.com/random/800x500?soccer,stadium',
+                        imageCaption: 'El estadio municipal durante el último partido de liga',
+                        content: [
+                            'Después de dos años de restricciones, el fútbol vuelve a llenar los estadios con normalidad. El pasado fin de semana se registró la mayor asistencia de público en los estadios desde antes de la pandemia, con una media de 25.000 espectadores por partido en primera división.',
+                            'Los aficionados celebran poder volver a vivir el deporte en directo, mientras que los clubes respiran aliviados por el retorno de una fuente de ingresos fundamental para su economía.'
+                        ]
+                    },
+                    quote: '"El periodismo es el primer borrador de la historia." - Philip Graham'
+                }
+            ];
+
+            let currentPage = 0;
+            let pages = [];
+            let isAnimating = false;
+            
+            // Crear las páginas del periódico
+            function createPages() {
+                newspaper.innerHTML = '';
+                pages = [];
+                
+                newspaperData.forEach((pageData, index) => {
+                    const page = document.createElement('div');
+                    page.className = 'newspaper-page';
+                    page.dataset.index = index;
+                    
+                    // Portada
+                    if (pageData.type === 'front-page') {
+                        page.innerHTML = `
+                            <div class="page-content">
+                                <header class="header">
+                                    <div class="date">${pageData.date} | Año XXVIII | Nº 10.247</div>
+                                    <h1 class="title">${pageData.title}</h1>
+                                    <p class="subtitle">"${pageData.subtitle}"</p>
+                                </header>
+                                
+                                <div class="columns">
+                                    <article class="main-article">
+                                        <h2 class="headline">${pageData.mainArticle.headline}</h2>
+                                        <p class="byline">${pageData.mainArticle.byline}</p>
+                                        
+                                        <figure class="article-img">
+                                            <img src="${pageData.mainArticle.image}" alt="${pageData.mainArticle.imageCaption}">
+                                            <figcaption>${pageData.mainArticle.imageCaption}</figcaption>
+                                        </figure>
+                                        
+                                        <div class="drop-cap">
+                                            ${pageData.mainArticle.content.map(p => `<p>${p}</p>`).join('')}
+                                        </div>
+                                    </article>
+                                    
+                                    <aside class="sidebar">
+                                        ${pageData.sidebarArticles.map(article => `
+                                            <article class="sidebar-article">
+                                                <h3 class="sidebar-title">${article.title}</h3>
+                                                <p>${article.content}</p>
+                                            </article>
+                                        `).join('')}
+                                    </aside>
+                                </div>
+                                
+                                <div class="page-number">Página ${index + 1}</div>
+                            </div>
+                        `;
+                    }
+                    // Páginas interiores
+                    else if (pageData.type === 'page') {
+                        page.innerHTML = `
+                            <div class="page-content">
+                                <div class="columns">
+                                    <article class="main-article">
+                                        <h2 class="headline">${pageData.mainArticle.headline}</h2>
+                                        <p class="byline">${pageData.mainArticle.byline}</p>
+                                        
+                                        <figure class="article-img">
+                                            <img src="${pageData.mainArticle.image}" alt="${pageData.mainArticle.imageCaption}">
+                                            <figcaption>${pageData.mainArticle.imageCaption}</figcaption>
+                                        </figure>
+                                        
+                                        <div class="drop-cap">
+                                            ${pageData.mainArticle.content.map(p => `<p>${p}</p>`).join('')}
+                                        </div>
+                                    </article>
+                                    
+                                    <aside class="sidebar">
+                                        ${pageData.sidebarArticles.map(article => `
+                                            <article class="sidebar-article">
+                                                <h3 class="sidebar-title">${article.title}</h3>
+                                                <p>${article.content}</p>
+                                            </article>
+                                        `).join('')}
+                                    </aside>
+                                </div>
+                                
+                                <div class="page-number">Página ${index + 1}</div>
+                            </div>
+                        `;
+                    }
+                    // Contraportada
+                    else if (pageData.type === 'back-page') {
+                        page.innerHTML = `
+                            <div class="page-content">
+                                <div class="columns">
+                                    <article class="main-article">
+                                        <h2 class="headline">${pageData.mainArticle.headline}</h2>
+                                        <p class="byline">${pageData.mainArticle.byline}</p>
+                                        
+                                        <figure class="article-img">
+                                            <img src="${pageData.mainArticle.image}" alt="${pageData.mainArticle.imageCaption}">
+                                            <figcaption>${pageData.mainArticle.imageCaption}</figcaption>
+                                        </figure>
+                                        
+                                        <div class="drop-cap">
+                                            ${pageData.mainArticle.content.map(p => `<p>${p}</p>`).join('')}
+                                        </div>
+                                    </article>
+                                    
+                                    <aside class="sidebar">
+                                        <article class="sidebar-article">
+                                            <h3 class="sidebar-title">Próximos Eventos</h3>
+                                            <p>No se pierda nuestra próxima edición especial sobre tecnología el 5 de julio.</p>
+                                        </article>
+                                        
+                                        <article class="sidebar-article">
+                                            <h3 class="sidebar-title">Cita del día</h3>
+                                            <p style="font-style: italic;">"${pageData.quote}"</p>
+                                        </article>
+                                    </aside>
+                                </div>
+                                
+                                <div class="page-number">Página ${index + 1}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    newspaper.appendChild(page);
+                    pages.push(page);
+                    
+                    // Ocultar todas las páginas excepto la primera
+                    if (index !== 0) {
+                        page.style.opacity = '0';
+                        page.style.transform = 'translateX(50px)';
+                        page.style.pointerEvents = 'none';
+                    }
+                });
+                
+                updateNavButtons();
+            }
+            
+            // Cambiar de página con transición suave
+            function goToPage(newIndex) {
+                if (isAnimating || newIndex < 0 || newIndex >= pages.length) return;
+                
+                isAnimating = true;
+                const currentPageElement = pages[currentPage];
+                const newPageElement = pages[newIndex];
+                
+                // Animación de salida de la página actual
+                currentPageElement.classList.add('page-out');
+                
+                // Mostrar la nueva página (inicialmente invisible a la derecha)
+                newPageElement.style.opacity = '0';
+                newPageElement.style.transform = newIndex > currentPage ? 'translateX(50px)' : 'translateX(-50px)';
+                newPageElement.style.pointerEvents = 'none';
+                newPageElement.style.display = 'block';
+                
+                setTimeout(() => {
+                    // Ocultar completamente la página actual
+                    currentPageElement.style.display = 'none';
+                    
+                    // Animación de entrada de la nueva página
+                    newPageElement.classList.add('page-in');
+                    newPageElement.style.opacity = '1';
+                    newPageElement.style.transform = 'translateX(0)';
+                    
+                    setTimeout(() => {
+                        newPageElement.style.pointerEvents = 'auto';
+                        currentPage = newIndex;
+                        isAnimating = false;
+                        updateNavButtons();
+                    }, 400);
+                }, 400);
+            }
+            
+            // Actualizar estado de los botones de navegación
+            function updateNavButtons() {
+                prevBtn.disabled = currentPage === 0;
+                nextBtn.disabled = currentPage === pages.length - 1;
+            }
+            
+            // Navegación
+            prevBtn.addEventListener('click', () => {
+                goToPage(currentPage - 1);
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                goToPage(currentPage + 1);
+            });
+            
+            // Navegación por teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    prevBtn.click();
+                } else if (e.key === 'ArrowRight') {
+                    nextBtn.click();
+                }
+            });
+            
+            // Navegación táctil
+            let touchStartX = 0;
+            
+            newspaper.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+            }, { passive: true });
+            
+            newspaper.addEventListener('touchend', (e) => {
+                const touchEndX = e.changedTouches[0].clientX;
+                const difference = touchStartX - touchEndX;
+                
+                if (difference > 50 && !nextBtn.disabled) {
+                    nextBtn.click();
+                } else if (difference < -50 && !prevBtn.disabled) {
+                    prevBtn.click();
+                }
+            }, { passive: true });
+            
+            // Inicializar
+            createPages();
+        });
+    </script>
+</body>
+</html>
